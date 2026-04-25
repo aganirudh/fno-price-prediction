@@ -1,27 +1,24 @@
-# Use a CUDA-enabled base image
-FROM nvidia/cuda:12.1.0-base-ubuntu22.04
+# Use the official PyTorch image (much more stable for HF)
+FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
-RUN apt-get update && apt-get install -y \
-    python3.10 python3-pip git wget \
-    && rm -rf /var/lib/apt/lists/*
+# Install only necessary system tools
+RUN apt-get update && apt-get install -y git wget && rm -rf /var/lib/apt/lists/*
 
+# Set up user
 RUN useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user
 ENV PATH=/home/user/.local/bin:$PATH
 WORKDIR $HOME/app
 
-# Step 1: Install Torch first (the heaviest layer)
-RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-
-# Step 2: Install Unsloth and Xformers
-RUN pip install --no-cache-dir "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
+# Step 1: Install Unsloth (using the pre-installed Torch)
+RUN pip install --no-cache-dir --no-deps "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
 RUN pip install --no-cache-dir xformers
 
-# Step 3: Install RL and App dependencies
+# Step 2: Install RL and App dependencies (excluding torch)
 RUN pip install --no-cache-dir \
     trl peft transformers accelerate \
     stable-baselines3 gymnasium shimmy stockstats scikit-learn \
