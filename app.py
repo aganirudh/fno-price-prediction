@@ -1,74 +1,65 @@
 import gradio as gr
 import subprocess
 import os
-import signal
 import time
+
+# Pre-create data directory
+os.makedirs("data/kaggle", exist_ok=True)
 
 def run_command(command):
     try:
-        # Runs the command and returns the output
+        # Runs the command and returns a snippet of output
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         output = ""
-        # Capture first 50 lines or wait for 5 seconds to show initial progress
         start_time = time.time()
-        while time.time() - start_time < 10:
+        # Capture for up to 5 seconds
+        while time.time() - start_time < 5:
             line = process.stdout.readline()
             if not line: break
             output += line
-            if len(output.split('\n')) > 100: break
+            if len(output.split('\n')) > 50: break
         
-        return output + "\n... Command continues in background. Check logs for details."
+        return output if output else "Command started (no immediate output)."
     except Exception as e:
         return str(e)
 
 def get_latest_report():
     reports_dir = "reports"
-    if not os.path.exists(reports_dir):
-        return "No reports directory found."
+    if not os.path.exists(reports_dir): return "No reports yet."
     reports = sorted([f for f in os.listdir(reports_dir) if f.endswith(".html")])
     if reports:
         with open(os.path.join(reports_dir, reports[-1]), "r") as f:
             return f.read()
-    return "No HTML reports found yet. Run a comparison to generate one."
+    return "No HTML reports found."
 
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
     gr.Markdown("# 🤖 PCP Arbitrage RL Command Center")
-    gr.Markdown("Management console for the Put-Call Parity Arbitrage Reinforcement Learning system.")
     
-    with gr.Tab("Training & Execution"):
+    with gr.Tab("Data & Training"):
         with gr.Row():
-            btn_ensemble = gr.Button("Step 1: Train Ensemble RL (PPO/A2C/DDPG)", variant="primary")
-            btn_hybrid = gr.Button("Step 2: Train Hybrid (LLM/GRPO)", variant="secondary")
+            btn_download = gr.Button("Step 0: Download Kaggle Data", variant="secondary")
+            btn_ensemble = gr.Button("Step 1: Train Ensemble RL", variant="primary")
+            btn_hybrid = gr.Button("Step 2: Train Hybrid (LLM)", variant="primary")
         
-        with gr.Row():
-            btn_paper = gr.Button("Start Paper Trading", variant="stop")
-            btn_stop = gr.Button("Stop All Processes", variant="secondary")
-            
-        output_log = gr.Textbox(label="Process Output (Snippet)", lines=15)
+        output_log = gr.Textbox(label="Process Output", lines=15)
         
+        btn_download.click(lambda: run_command("python3 -c 'from data_pipeline.kaggle.dataset_loader import KaggleDatasetLoader; loader = KaggleDatasetLoader(); loader.download_dataset(\"data/kaggle\")'"), outputs=output_log)
         btn_ensemble.click(lambda: run_command("python3 main.py --mode train-ensemble --timesteps 50000"), outputs=output_log)
         btn_hybrid.click(lambda: run_command("python3 main.py --mode train-hybrid --steps 1000"), outputs=output_log)
-        btn_paper.click(lambda: run_command("python3 main.py --mode paper --feed mock"), outputs=output_log)
-        btn_stop.click(lambda: "All background processes signal sent (Mock)", outputs=output_log)
 
     with gr.Tab("Strategy Comparison"):
         btn_compare = gr.Button("Run Full 5-Strategy Backtest")
         report_view = gr.HTML(label="Latest Report", value=get_latest_report())
-        
-        def run_compare_and_show():
-            run_command("python3 main.py --mode compare")
-            return get_latest_report()
-            
-        btn_compare.click(run_compare_and_show, outputs=report_view)
+        btn_compare.click(lambda: run_command("python3 main.py --mode compare") or get_latest_report(), outputs=report_view)
 
     with gr.Tab("System Status"):
-        with gr.Row():
-            btn_status = gr.Button("Check MCP & Data Status")
+        btn_status = gr.Button("Check Status")
         status_out = gr.Textbox(label="System Status", lines=10)
         
         def check_status():
-            mcp = run_command("ps aux | grep _server.py")
-            data = run_command("ls -R data/kaggle")
+            # Using ps -ef for better compatibility
+            mcp = subprocess.getoutput("ps -ef | grep _server.py | grep -v grep")
+            data = subprocess.getoutput("ls -lh data/kaggle")
             return f"--- MCP Servers ---\n{mcp}\n\n--- Data Files ---\n{data}"
             
         btn_status.click(check_status, outputs=status_out)
