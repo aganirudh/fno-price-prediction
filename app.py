@@ -59,8 +59,9 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         def check_status():
             # Using ps -ef for better compatibility
             mcp = subprocess.getoutput("ps -ef | grep _server.py | grep -v grep")
-            data = subprocess.getoutput("ls -lh data/kaggle")
-            return f"--- MCP Servers ---\n{mcp}\n\n--- Data Files ---\n{data}"
+            # Recursive ls to see nested Kaggle files
+            data = subprocess.getoutput("ls -Rlh data/kaggle | grep -v '^total 0' | head -n 20")
+            return f"--- MCP Servers ---\n{mcp}\n\n--- Data Files (Recursive) ---\n{data}"
             
         btn_status.click(check_status, outputs=status_out)
 

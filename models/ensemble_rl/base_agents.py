@@ -39,6 +39,7 @@ class StockTradingEnv(gym.Env):
         self.stock_dim = stock_dim
         self.initial_amount = initial_amount
         self.transaction_cost_pct = transaction_cost_pct
+        self.stt_exercise_pct = 0.00125  # 0.125% STT on exercise/heavy liquidations
         self.max_shares = max_shares_per_trade
         self.turbulence_threshold = turbulence_threshold
 
@@ -88,10 +89,11 @@ class StockTradingEnv(gym.Env):
 
         turbulence = self._get_turbulence(self.day)
         if turbulence > self.turbulence_threshold:
+            # Crisis/Exercise regime: apply higher STT tax
             for i in range(self.stock_dim):
                 if self.holdings[i] > 0 and prices[i] > 0:
                     proceeds = self.holdings[i] * prices[i]
-                    cost = proceeds * self.transaction_cost_pct
+                    cost = proceeds * self.stt_exercise_pct
                     self.cash += proceeds - cost
                     self.cost_history.append(cost)
                     self.trade_count += 1
@@ -103,11 +105,13 @@ class StockTradingEnv(gym.Env):
                     shares = min(int(abs(action[i]) * self.max_shares), int(self.holdings[i]))
                     if shares > 0:
                         proceeds = shares * prices[i]
+                        # Standard trade cost
                         cost = proceeds * self.transaction_cost_pct
                         self.cash += proceeds - cost
                         self.holdings[i] -= shares
                         self.cost_history.append(cost)
                         self.trade_count += 1
+
                 elif action[i] > 0.1 and prices[i] > 0:
                     shares = min(int(action[i] * self.max_shares), int(self.cash / (prices[i] * (1 + self.transaction_cost_pct))))
                     if shares > 0:

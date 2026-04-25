@@ -69,7 +69,13 @@ class EnsembleDataPrep:
             df["eps_momentum"] = df.groupby("tic")["EPS"].pct_change(periods=63).fillna(0) * 100
         else:
             df["eps_momentum"] = 0.0
-        if "Book_Value" in df.columns and "close" in df.columns:
+        if "Price_to_Book" in df.columns and "close" in df.columns:
+            df["book_to_market"] = np.where(
+                df["Price_to_Book"] > 0,
+                1.0 / df["Price_to_Book"].fillna(1),
+                0.0,
+            )
+        elif "Book_Value" in df.columns and "close" in df.columns:
             df["book_to_market"] = np.where(
                 df["close"] > 0,
                 df["Book_Value"].fillna(0) / df["close"],
@@ -77,6 +83,7 @@ class EnsembleDataPrep:
             )
         else:
             df["book_to_market"] = 0.0
+
 
         # Clean up
         df.sort_values(["date", "tic"], inplace=True)

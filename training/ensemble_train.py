@@ -108,19 +108,40 @@ def train_ensemble(
     strategies = {"PPO": ppo, "A2C": a2c, "DDPG": ddpg}
     equity_curves = {}
 
+    # NIFTY50 Baseline (Buy & Hold)
+    print("  Calculating NIFTY50 Buy & Hold baseline...")
+    index_df = loader.load_nifty_index(data_dir)
+    test_dates = sorted(test_df["date"].unique())
+    index_test = index_df[index_df["Date"].isin(test_dates)].sort_values("Date")
+    if len(index_test) > 0:
+        base_prices = index_test["Close"].values
+        # Normalize to starting amount
+        baseline_values = (base_prices / base_prices[0]) * test_env.initial_amount
+        equity_curves["NIFTY50_B&H"] = baseline_values.tolist()
+        results["NIFTY50_B&H"] = _compute_metrics(baseline_values)
+        print(f"  Baseline: Return={results['NIFTY50_B&H']['total_return']:.1f}%, Sharpe={results['NIFTY50_B&H']['sharpe']:.3f}")
+
     for name, agent in strategies.items():
         values = _run_agent(agent, test_env)
         equity_curves[name] = values
         metrics = _compute_metrics(values)
         results[name] = metrics
-        print(f"  {name}: Sharpe={metrics['sharpe']:.3f}, Return={metrics['total_return']:.1f}%, MaxDD={metrics['max_dd']:.1f}%")
+        improvement = ""
+        if "NIFTY50_B&H" in results:
+            alpha = metrics['total_return'] - results['NIFTY50_B&H']['total_return']
+            improvement = f" (Alpha: {alpha:+.1f}%)"
+        print(f"  {name}: Sharpe={metrics['sharpe']:.3f}, Return={metrics['total_return']:.1f}%{improvement}")
 
     # Ensemble strategy
     ensemble_values = _run_ensemble(selector, test_env, test_df)
     equity_curves["Ensemble"] = ensemble_values
     metrics = _compute_metrics(ensemble_values)
     results["Ensemble"] = metrics
-    print(f"  Ensemble: Sharpe={metrics['sharpe']:.3f}, Return={metrics['total_return']:.1f}%, MaxDD={metrics['max_dd']:.1f}%")
+    improvement = ""
+    if "NIFTY50_B&H" in results:
+        alpha = metrics['total_return'] - results['NIFTY50_B&H']['total_return']
+        improvement = f" (Alpha: {alpha:+.1f}%)"
+    print(f"  Ensemble: Sharpe={metrics['sharpe']:.3f}, Return={metrics['total_return']:.1f}%{improvement}")
 
     # --- Step 6: Save agents ---
     ckpt_dir = output_dir / "ensemble"
@@ -139,10 +160,21 @@ def train_ensemble(
     reports_dir = Path("reports")
     reports_dir.mkdir(exist_ok=True)
     fig, ax = plt.subplots(figsize=(14, 7))
-    colors = {"PPO": "#4CAF50", "A2C": "#2196F3", "DDPG": "#FF9800", "Ensemble": "#E91E63"}
+    colors = {
+        "PPO": "#4CAF50", 
+        "A2C": "#2196F3", 
+        "DDPG": "#FF9800", 
+        "Ensemble": "#E91E63",
+        "NIFTY50_B&H": "#000000" # Black for baseline
+    }
     for name, curve in equity_curves.items():
-        ax.plot(curve, label=name, color=colors.get(name, "#666"))
-    ax.set_title("Ensemble Strategy Comparison")
+        label = f"{name} (Ret: {results[name]['total_return']:.1f}%)"
+        ax.plot(curve, label=label, color=colors.get(name, "#666"), linewidth=2 if name=="Ensemble" else 1.5)
+    
+    ax.set_title("NIFTY50 Portfolio RL vs Buy & Hold (Original Values)")
+    ax.set_ylabel("Portfolio Value (INR)")
+    ax.set_xlabel("Test Period (Days)")
+    ax.grid(True, alpha=0.3)
     ax.legend()
     plot_path = reports_dir / "ensemble_comparison.png"
     fig.savefig(plot_path)
