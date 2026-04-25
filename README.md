@@ -1,8 +1,14 @@
-# PCP Arb RL — Put-Call Parity Arbitrage with Reinforcement Learning
+---
+title: Fno Price Prediction
+emoji: 🤖
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+app_port: 7860
+---
 
-A production-grade RL system that trains an LLM agent to exploit put-call parity violations in NSE equity options and MCX commodity futures, using MCP (Model Context Protocol) servers as the agent's tooling interface.
-
-## Why RL for PCP Arbitrage?
+# PCP Arbitrage RL System
 
 ### The STT Trap Problem
 Put-call parity violations in Indian markets appear frequently, but **most are unprofitable after transaction costs**. The critical cost is **STT on exercise** — if you hold an in-the-money option to expiry, NSE charges **0.125% of intrinsic value** as Securities Transaction Tax. This single cost makes many apparently profitable arbitrage opportunities deeply unprofitable.
