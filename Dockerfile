@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir xformers
 RUN pip install --no-cache-dir \
     trl peft transformers accelerate \
     stable-baselines3 gymnasium shimmy stockstats scikit-learn \
-    fastapi uvicorn kaggle pandas numpy rich jinja2 gradio
+    fastapi uvicorn kaggle pandas numpy rich jinja2 gradio wandb
 
 COPY --chown=user . $HOME/app
 
