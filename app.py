@@ -43,7 +43,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         
         output_log = gr.Textbox(label="Process Output", lines=15)
         
-        btn_download.click(lambda: run_command("python3 -c 'from data_pipeline.kaggle.dataset_loader import KaggleDatasetLoader; loader = KaggleDatasetLoader(); loader.download_dataset(\"data/kaggle\")'"), outputs=output_log)
+        btn_download.click(lambda: run_command("python3 tools/download_data.py"), outputs=output_log)
         btn_ensemble.click(lambda: run_command("python3 main.py --mode train-ensemble --timesteps 50000"), outputs=output_log)
         btn_hybrid.click(lambda: run_command("python3 main.py --mode train-hybrid --steps 1000"), outputs=output_log)
 
