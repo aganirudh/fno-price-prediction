@@ -106,8 +106,8 @@ def cmd_train(args):
 def cmd_train_ensemble(args):
     """Train SB3 ensemble (PPO + A2C + DDPG) on NIFTY50 data."""
     from training.ensemble_train import train_ensemble
-    data_dir = Path(getattr(args, "data_dir", "data/kaggle"))
-    output_dir = Path(getattr(args, "output_dir", "checkpoints"))
+    data_dir = Path(args.data_dir or "data/kaggle")
+    output_dir = Path(args.output_dir or "checkpoints")
     timesteps = getattr(args, "timesteps", 50000)
 
     print(f"[Main] Starting ensemble training on NIFTY50 data...")
@@ -126,9 +126,9 @@ def cmd_train_ensemble(args):
 def cmd_train_hybrid(args):
     """Train hybrid ensemble + GRPO system."""
     from training.hybrid_train import train_hybrid
-    ensemble_ckpt = Path(getattr(args, "ensemble_checkpoint", "checkpoints/ensemble"))
-    arb_data = Path(getattr(args, "arb_data_dir", "data/historical"))
-    output_dir = Path(getattr(args, "output_dir", "checkpoints"))
+    ensemble_ckpt = Path(args.ensemble_checkpoint or "checkpoints/ensemble")
+    arb_data = Path(args.arb_data_dir or "data/historical")
+    output_dir = Path(args.output_dir or "checkpoints")
     steps = getattr(args, "steps", 1000)
 
     print(f"[Main] Starting hybrid training...")
@@ -152,8 +152,8 @@ def cmd_compare(args):
     from models.ensemble_rl.ensemble_selector import EnsembleSelector
     import pandas as pd
 
-    output_dir = Path(getattr(args, "output_dir", "reports"))
-    ensemble_ckpt = Path(getattr(args, "ensemble_checkpoint", "checkpoints/ensemble"))
+    output_dir = Path(args.output_dir or "reports")
+    ensemble_ckpt = Path(args.ensemble_checkpoint or "checkpoints/ensemble")
 
     print("[Main] Running 5-strategy comparison...")
 
