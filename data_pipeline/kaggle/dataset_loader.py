@@ -38,12 +38,12 @@ class KaggleDatasetLoader:
         Aligns columns to a standard format: [Date, Symbol, Open, High, Low, Close, Volume, PE, EPS, BV, DivYield].
         """
         data_dir = Path(data_dir)
-        csv_files = list(data_dir.glob("*.csv"))
+        csv_files = list(data_dir.rglob("*.csv"))
         
         if not csv_files:
             logger.warning("No CSV files found in %s. Attempting download...", data_dir)
             self.download_dataset(data_dir)
-            csv_files = list(data_dir.glob("*.csv"))
+            csv_files = list(data_dir.rglob("*.csv"))
 
         all_dfs = []
         for f in csv_files:
