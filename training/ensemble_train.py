@@ -75,7 +75,8 @@ def train_ensemble(
     # --- Step 2: Prepare FinRL format ---
     print("[EnsembleTrain] Preparing FinRL format...")
     prep = EnsembleDataPrep()
-    finrl_df = prep.prepare_finrl_format(stocks)
+    # Memory optimization: skip heavy indicators for now
+    finrl_df = prep.prepare_finrl_format(stocks, tech_indicators=[])
 
     # Skip turbulence to save memory - set to 0
     finrl_df["turbulence"] = 0.0

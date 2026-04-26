@@ -78,8 +78,10 @@ class KaggleDatasetLoader:
             raise FileNotFoundError(f"No valid stock data found in {data_dir}")
 
         print(f"[DataLoader] Loading main CSV: {main_csv.name} ({main_csv.stat().st_size / (1024*1024):.1f} MB)")
-        df = pd.read_csv(main_csv)
-        print(f"[DataLoader] Raw shape: {df.shape}, Columns: {list(df.columns)}")
+        # Optimization: only load needed columns and use float32
+        needed_cols = ["Date", "Ticker", "Open", "High", "Low", "Close", "Volume", "PE_Ratio", "Price_to_Book"]
+        df = pd.read_csv(main_csv, usecols=lambda x: any(c in x for c in needed_cols))
+        print(f"[DataLoader] Raw shape: {df.shape}")
 
         # Standardize column names
         col_map = {}
