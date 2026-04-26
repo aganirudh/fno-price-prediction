@@ -24,7 +24,7 @@ class StockTradingEnv(gym.Env):
     def __init__(
         self,
         df: "pd.DataFrame",
-        stock_dim: int = 50,
+        stock_dim: int = 30,
         initial_amount: float = 1_000_000,
         transaction_cost_pct: float = 0.001,
         max_shares_per_trade: int = 100,
@@ -202,7 +202,7 @@ class PPOAgent(BaseAgentWrapper):
     def __init__(self): super().__init__("PPO")
     def train(self, env, total_timesteps=50000):
         from stable_baselines3 import PPO
-        self.model = PPO("MlpPolicy", env, verbose=0)
+        self.model = PPO("MlpPolicy", env, verbose=0, n_steps=256, batch_size=64)
         self.model.learn(total_timesteps=total_timesteps)
     def load(self, path):
         from stable_baselines3 import PPO
@@ -213,7 +213,7 @@ class A2CAgent(BaseAgentWrapper):
     def __init__(self): super().__init__("A2C")
     def train(self, env, total_timesteps=50000):
         from stable_baselines3 import A2C
-        self.model = A2C("MlpPolicy", env, verbose=0)
+        self.model = A2C("MlpPolicy", env, verbose=0, n_steps=256)
         self.model.learn(total_timesteps=total_timesteps)
     def load(self, path):
         from stable_baselines3 import A2C
@@ -224,7 +224,8 @@ class DDPGAgent(BaseAgentWrapper):
     def __init__(self): super().__init__("DDPG")
     def train(self, env, total_timesteps=50000):
         from stable_baselines3 import DDPG
-        self.model = DDPG("MlpPolicy", env, verbose=0)
+        # buffer_size=50000 keeps memory under 500MB for 30-stock obs space
+        self.model = DDPG("MlpPolicy", env, verbose=0, buffer_size=50000, batch_size=64)
         self.model.learn(total_timesteps=total_timesteps)
     def load(self, path):
         from stable_baselines3 import DDPG

@@ -77,7 +77,7 @@ def train_ensemble(
     train_df, val_df, test_df = prep.split_data(finrl_df)
     print(f"[EnsembleTrain] Train: {len(train_df)} rows, Val: {len(val_df)}, Test: {len(test_df)}")
 
-    stock_dim = min(50, finrl_df["tic"].nunique())
+    stock_dim = min(30, finrl_df["tic"].nunique())
 
     # --- Step 4: Initialize agents + train ---
     print("[EnsembleTrain] Initializing agents...")
