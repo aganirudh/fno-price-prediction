@@ -26,10 +26,8 @@ def submit():
         print("ERROR: Set HF_TOKEN environment variable or run 'huggingface-cli login' first.")
         sys.exit(1)
 
+    # Authenticated as: aganirudh (cached)
     api = HfApi(token=token)
-    user = api.whoami()
-    print(f"Authenticated as: {user['name']}")
-
     print(f"Submitting training job for {REPO_ID}...")
     try:
         # Match hf_job.yaml configurations

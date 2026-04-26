@@ -49,12 +49,19 @@ def parse_action(response: str) -> Tuple[Dict, bool]:
         return {"action_type": "hold", "tool_calls": [], "strike": None, "qty": 1}, False
 
 def collect_rollout(env: PCPArbEnv, model, tokenizer,
-                    max_steps: int = 50, device: str = "cuda") -> List[Dict]:
+                    max_steps: int = 50, device: Optional[str] = None) -> List[Dict]:
     """
     Run one episode: reset env, generate LLM responses, collect trajectories.
     
     Returns list of (prompt, completion, reward) tuples for GRPO training.
     """
+    if device is None:
+        try:
+            from config.settings import get_settings
+            device = get_settings().training.device
+        except ImportError:
+            device = "cuda"
+
     obs = env.reset()
     trajectories = []
     total_reward = 0.0
