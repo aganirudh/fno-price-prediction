@@ -204,7 +204,8 @@ class PPOAgent(BaseAgentWrapper):
         from stable_baselines3 import PPO
         from config.settings import get_settings
         device = get_settings().training.ensemble_device
-        self.model = PPO("MlpPolicy", env, verbose=0, n_steps=256, batch_size=64, device=device)
+        # Optimized for A10G: Larger batch size and n_steps
+        self.model = PPO("MlpPolicy", env, verbose=0, n_steps=2048, batch_size=256, device=device)
         self.model.learn(total_timesteps=total_timesteps)
     def load(self, path):
         from stable_baselines3 import PPO
@@ -217,7 +218,8 @@ class A2CAgent(BaseAgentWrapper):
         from stable_baselines3 import A2C
         from config.settings import get_settings
         device = get_settings().training.ensemble_device
-        self.model = A2C("MlpPolicy", env, verbose=0, n_steps=256, device=device)
+        # Optimized for A10G
+        self.model = A2C("MlpPolicy", env, verbose=0, n_steps=128, device=device)
         self.model.learn(total_timesteps=total_timesteps)
     def load(self, path):
         from stable_baselines3 import A2C
@@ -230,8 +232,8 @@ class DDPGAgent(BaseAgentWrapper):
         from stable_baselines3 import DDPG
         from config.settings import get_settings
         device = get_settings().training.ensemble_device
-        # buffer_size=50000 keeps memory under 500MB for 30-stock obs space
-        self.model = DDPG("MlpPolicy", env, verbose=0, buffer_size=50000, batch_size=64, device=device)
+        # Optimized for A10G: Larger buffer and batch size
+        self.model = DDPG("MlpPolicy", env, verbose=0, buffer_size=100000, batch_size=256, device=device)
         self.model.learn(total_timesteps=total_timesteps)
     def load(self, path):
         from stable_baselines3 import DDPG

@@ -204,7 +204,7 @@ training:
   lora_alpha: 16
   wandb_project: "pcp-arb-rl"
   checkpoint_interval: 100
-  ensemble_device: "cpu"
+  ensemble_device: "cuda"
   llm_device: "cuda"
 
 # ──────────────────────────────────────────────────────
