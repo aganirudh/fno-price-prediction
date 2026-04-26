@@ -30,17 +30,31 @@ def submit():
     user = api.whoami()
     print(f"Authenticated as: {user['name']}")
 
-    print(f"Submitting training job to {REPO_ID}...")
+    print(f"Submitting training job for {REPO_ID}...")
     try:
+        # Match hf_job.yaml configurations
         job = api.run_job(
-            repo_id=REPO_ID,
+            image="pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime",
             command=[
                 "bash", "-c",
-                "pip install -q stable-baselines3 gymnasium shimmy stockstats scikit-learn kaggle wandb && "
+                "apt-get update && apt-get install -y git wget && "
+                "git clone https://huggingface.co/spaces/aganirudh/fno-price-prediction /app && "
+                "cd /app && "
+                "pip install -q stable-baselines3 gymnasium shimmy stockstats scikit-learn kaggle wandb matplotlib && "
+                "pip install -q 'unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git' && "
+                "export KAGGLE_USERNAME=aganirudh && "
+                "export KAGGLE_KEY=KGAT_7006cb8c11132de6b9d15252661dc6c1 && "
                 "python tools/download_data.py && "
-                "python main.py --mode train-ensemble --timesteps 50000 --no-wandb"
+                "python main.py --mode train-ensemble --timesteps 50000 --no-wandb && "
+                "python main.py --mode train-hybrid --steps 1000 --no-wandb && "
+                "huggingface-cli upload aganirudh/fno-price-prediction checkpoints/ ./checkpoints --repo-type space"
             ],
-            repo_type="space",
+            env={
+                "KAGGLE_USERNAME": "aganirudh",
+                "KAGGLE_KEY": "KGAT_7006cb8c11132de6b9d15252661dc6c1",
+                "PYTHONPATH": "."
+            },
+            flavor="a10g-small",
         )
         print(f"[OK] Job submitted: {job}")
     except Exception as e:
@@ -52,13 +66,14 @@ def fallback_local():
     """Run locally - SB3 does NOT need a GPU."""
     import subprocess
     print("\n--- Running Ensemble Training Locally (CPU) ---")
-    subprocess.run([sys.executable, "tools/download_data.py"], check=True)
+    root = Path(__file__).resolve().parent.parent
+    subprocess.run([sys.executable, str(root / "tools/download_data.py")], check=True, cwd=str(root))
     subprocess.run([
-        sys.executable, "main.py",
+        sys.executable, str(root / "main.py"),
         "--mode", "train-ensemble",
         "--timesteps", "50000",
         "--no-wandb"
-    ], check=True)
+    ], check=True, cwd=str(root))
 
 if __name__ == "__main__":
     submit()

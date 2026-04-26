@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html><head><title>Alpha Report — NIFTY</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;margin:0;padding:20px}
+.container{max-width:1200px;margin:0 auto}
+h1{color:#58a6ff;border-bottom:2px solid #21262d;padding-bottom:10px}
+h2{color:#79c0ff} h3{color:#c9d1d9}
+.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:15px 0}
+.traffic{text-align:center;padding:30px;font-size:32px;font-weight:bold;color:#3fb950;
+  border:3px solid #3fb950;border-radius:12px;margin:20px 0}
+.metric{display:inline-block;margin:10px 20px;text-align:center}
+.metric .value{font-size:28px;font-weight:bold;color:#58a6ff}
+.metric .label{font-size:12px;color:#8b949e}
+.positive{color:#3fb950} .negative{color:#f85149}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.chart-container{position:relative;height:250px}
+table{width:100%;border-collapse:collapse} th,td{padding:8px;text-align:right;border-bottom:1px solid #21262d}
+th{color:#8b949e}
+</style></head><body><div class="container">
+<h1>📊 PCP Arbitrage Alpha Analysis</h1>
+<p>NIFTY | 2024-06-28 to 2024-06-28 | 1 sessions analyzed</p>
+<div class="traffic">🚦 GREEN<br><span style="font-size:16px">Strong alpha signal. Proceed with training.</span></div>
+
+<div class="card"><h2>Violation Frequency</h2>
+<div class="metric"><div class="value">60.0</div><div class="label">Violations/Session</div></div>
+<div class="metric"><div class="value">0.58%</div><div class="label">Avg Magnitude</div></div>
+<div class="metric"><div class="value">75s</div><div class="label">Avg Duration</div></div>
+<div class="metric"><div class="value">60</div><div class="label">Total Violations</div></div>
+<div class="grid">
+<div class="chart-container"><canvas id="hourChart"></canvas></div>
+<div class="chart-container"><canvas id="bucketChart"></canvas></div>
+</div></div>
+
+<div class="card"><h2>Cost Impact</h2>
+<div class="metric"><div class="value positive">100.0%</div><div class="label">Survival Rate</div></div>
+<div class="metric"><div class="value">0.02%</div><div class="label">Avg Breakeven</div></div>
+<div class="metric"><div class="value negative">0.0%</div><div class="label">STT Trap Rate</div></div>
+<div class="metric"><div class="value">₹4,764</div><div class="label">Avg Net Profit</div></div>
+<div class="chart-container"><canvas id="costChart"></canvas></div>
+<table><tr><th>Bucket</th><th>Count</th><th>Profitable</th><th>Survival %</th></tr>
+<tr><td>0.1-0.3%</td><td>5</td><td>5</td><td>100.0%</td></tr><tr><td>0.3-0.5%</td><td>19</td><td>19</td><td>100.0%</td></tr><tr><td>0.5-1.0%</td><td>36</td><td>36</td><td>100.0%</td></tr><tr><td>1.0%+</td><td>0</td><td>0</td><td>0%</td></tr>
+</table></div>
+
+<div class="card"><h2>Executability</h2>
+<div class="metric"><div class="value">3,770</div><div class="label">Avg ATM OI</div></div>
+<div class="metric"><div class="value">0.10%</div><div class="label">Avg Spread</div></div>
+<div class="metric"><div class="value">95%</div><div class="label">Fill Probability</div></div>
+<div class="metric"><div class="value">100%</div><div class="label">Liquid Strikes</div></div></div>
+
+<div class="card"><h2>Baseline Agent</h2>
+<div class="metric"><div class="value positive">₹0</div><div class="label">Total P&L</div></div>
+<div class="metric"><div class="value">0.000</div><div class="label">Sharpe</div></div>
+<div class="metric"><div class="value">0%</div><div class="label">Win Rate</div></div>
+<div class="metric"><div class="value">0</div><div class="label">Trades</div></div>
+<div class="metric"><div class="value">45s</div><div class="label">Avg Hold</div></div>
+<p style="color:#8b949e">The RL agent must beat this baseline. If baseline Sharpe < 0, alpha may not exist.</p></div>
+</div>
+<script>
+new Chart(document.getElementById('hourChart'),{type:'bar',data:{labels:[9, 10, 11, 12, 13, 14, 15],datasets:[{label:'Violations',data:[15, 0, 5, 5, 5, 25, 5],backgroundColor:'#58a6ff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Violations by Hour',color:'#c9d1d9'}}}});
+new Chart(document.getElementById('bucketChart'),{type:'doughnut',data:{labels:["0.1-0.3%", "0.3-0.5%", "0.5-1.0%", "1.0%+"],datasets:[{data:[5, 19, 36, 0],backgroundColor:['#388bfd','#58a6ff','#79c0ff','#a5d6ff']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Magnitude Distribution',color:'#c9d1d9'}}}});
+new Chart(document.getElementById('costChart'),{type:'bar',data:{labels:["0.1-0.3%", "0.3-0.5%", "0.5-1.0%", "1.0%+"],datasets:[{label:'Survival %',data:[100.0, 100.0, 100.0, 0],backgroundColor:'#3fb950'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Post-Cost Survival by Bucket',color:'#c9d1d9'}}}});
+</script></body></html>

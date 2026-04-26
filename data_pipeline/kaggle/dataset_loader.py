@@ -159,13 +159,16 @@ class KaggleDatasetLoader:
         # Try summary file
         for f in data_dir.rglob("*summary*"):
             if f.suffix == ".csv":
-                return pd.read_csv(f)
+                df = pd.read_csv(f)
+                if "Date" in df.columns:
+                    return df
 
         # Construct from constituents
         stocks = self.load_all_stocks(data_dir)
         if "Market_Cap" in stocks.columns:
             index_df = stocks.groupby("Date").apply(
-                lambda x: np.average(x["Close"], weights=x["Market_Cap"].fillna(1))
+                lambda x: np.average(x["Close"], weights=x["Market_Cap"].fillna(1)),
+                include_groups=False
             ).reset_index()
         else:
             index_df = stocks.groupby("Date")["Close"].mean().reset_index()

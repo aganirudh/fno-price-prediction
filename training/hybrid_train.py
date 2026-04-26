@@ -54,16 +54,36 @@ def train_hybrid(
         fundamentals_processor=fund_processor,
     )
 
-    print(f"[HybridTrain] Starting GRPO fine-tuning ({grpo_steps} steps)...")
-    # Simulation for smoke test
+    # --- Step 3: Proceed to GRPO fine-tuning ---
+    print(f"[HybridTrain] Starting GRPO fine-tuning of the Arb Layer ({grpo_steps} steps)...")
+    from training.train import train
+    
+    # We pass the ensemble_checkpoint so the environment or trainer can potentially use it
+    # For now, train() handles the LLM fine-tuning part
+    try:
+        grpo_checkpoint = train(
+            total_steps=grpo_steps,
+            checkpoint_path=None, # Start fresh or from base
+            wandb_enabled=wandb_enabled
+        )
+        print(f"[HybridTrain] GRPO training complete! Checkpoint: {grpo_checkpoint}")
+    except Exception as e:
+        print(f"[HybridTrain] GRPO training failed: {e}")
+        grpo_checkpoint = "failed"
+
     final_dir = output_dir / "hybrid_final"
     final_dir.mkdir(parents=True, exist_ok=True)
     
-    summary = {"grpo_steps": grpo_steps, "status": "completed"}
+    summary = {
+        "grpo_steps": grpo_steps,
+        "status": "completed" if grpo_checkpoint != "failed" else "partial",
+        "ensemble_checkpoint": str(ensemble_checkpoint),
+        "grpo_checkpoint": str(grpo_checkpoint),
+        "timestamp": datetime.now().isoformat()
+    }
     with open(final_dir / "hybrid_training_summary.json", "w") as f:
         json.dump(summary, f, indent=2)
 
-    print("\n[HybridTrain] Hybrid training complete!")
     return str(final_dir)
 
 if __name__ == "__main__":
