@@ -24,7 +24,7 @@ class StockTradingEnv(gym.Env):
     def __init__(
         self,
         df: "pd.DataFrame",
-        stock_dim: int = 30,
+        stock_dim: int = 10,
         initial_amount: float = 1_000_000,
         transaction_cost_pct: float = 0.001,
         max_shares_per_trade: int = 100,

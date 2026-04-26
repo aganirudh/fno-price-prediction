@@ -63,21 +63,30 @@ def train_ensemble(
         print("[EnsembleTrain] Generating synthetic NIFTY50 data for training fallback")
         stocks = _generate_synthetic_nifty50()
 
+    # Memory optimization: use only top 10 stocks by data count
+    stock_counts = stocks.groupby("Symbol").size().sort_values(ascending=False)
+    top_stocks = stock_counts.head(10).index.tolist()
+    stocks = stocks[stocks["Symbol"].isin(top_stocks)].copy()
+    print(f"[EnsembleTrain] Using top {len(top_stocks)} stocks: {top_stocks}")
+
     stats = loader.get_date_range_stats(stocks)
     print(f"[EnsembleTrain] Loaded: {stats['total_trading_days']} days, {stats['total_symbols']} symbols")
 
-    # --- Step 2: Prepare FinRL format + turbulence ---
+    # --- Step 2: Prepare FinRL format ---
     print("[EnsembleTrain] Preparing FinRL format...")
     prep = EnsembleDataPrep()
     finrl_df = prep.prepare_finrl_format(stocks)
-    print("[EnsembleTrain] Computing turbulence index...")
-    finrl_df = prep.compute_turbulence_index(finrl_df)
+
+    # Skip turbulence to save memory - set to 0
+    finrl_df["turbulence"] = 0.0
+    print("[EnsembleTrain] Turbulence index: skipped (memory optimization)")
 
     # --- Step 3: Split data ---
     train_df, val_df, test_df = prep.split_data(finrl_df)
     print(f"[EnsembleTrain] Train: {len(train_df)} rows, Val: {len(val_df)}, Test: {len(test_df)}")
 
-    stock_dim = min(30, finrl_df["tic"].nunique())
+    stock_dim = min(10, finrl_df["tic"].nunique())
+
 
     # --- Step 4: Initialize agents + train ---
     print("[EnsembleTrain] Initializing agents...")
