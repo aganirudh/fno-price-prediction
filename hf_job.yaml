@@ -1,0 +1,33 @@
+# Hugging Face Compute Job Configuration for PCP Arbitrage RL
+compute:
+  # Using an A10G (24GB VRAM) for fast GRPO training
+  instance_type: a10g-small
+  region: us-east-1
+
+image:
+  # Using the same stable image we used for the Space
+  custom: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+
+env:
+  # Your Kaggle credentials (I've already injected these into your Space)
+  KAGGLE_USERNAME: aganirudh
+  KAGGLE_KEY: KGAT_7006cb8c11132de6b9d15252661dc6c1
+  PYTHONPATH: .
+
+# The sequence of commands to run the entire pipeline
+command: |
+  apt-get update && apt-get install -y git wget
+  pip install -r requirements.txt
+  pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
+  
+  # Step 0: Download Data
+  python tools/download_data.py
+  
+  # Step 1: Train Ensemble (Portfolio Layer)
+  python main.py --mode train-ensemble --timesteps 100000
+  
+  # Step 2: Train Hybrid (Arbitrage Layer)
+  python main.py --mode train-hybrid --steps 2000
+  
+  # Save the output back to your Space/Hub
+  huggingface-cli upload aganirudh/fno-price-prediction checkpoints/ ./checkpoints --repo-type space
