@@ -58,7 +58,7 @@ def collect_rollout(env: PCPArbEnv, model, tokenizer,
     if device is None:
         try:
             from config.settings import get_settings
-            device = get_settings().training.device
+            device = get_settings().training.llm_device
         except ImportError:
             device = "cuda"
 

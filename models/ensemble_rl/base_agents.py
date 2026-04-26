@@ -203,7 +203,7 @@ class PPOAgent(BaseAgentWrapper):
     def train(self, env, total_timesteps=50000):
         from stable_baselines3 import PPO
         from config.settings import get_settings
-        device = get_settings().training.device
+        device = get_settings().training.ensemble_device
         self.model = PPO("MlpPolicy", env, verbose=0, n_steps=256, batch_size=64, device=device)
         self.model.learn(total_timesteps=total_timesteps)
     def load(self, path):
@@ -216,7 +216,7 @@ class A2CAgent(BaseAgentWrapper):
     def train(self, env, total_timesteps=50000):
         from stable_baselines3 import A2C
         from config.settings import get_settings
-        device = get_settings().training.device
+        device = get_settings().training.ensemble_device
         self.model = A2C("MlpPolicy", env, verbose=0, n_steps=256, device=device)
         self.model.learn(total_timesteps=total_timesteps)
     def load(self, path):
@@ -229,7 +229,7 @@ class DDPGAgent(BaseAgentWrapper):
     def train(self, env, total_timesteps=50000):
         from stable_baselines3 import DDPG
         from config.settings import get_settings
-        device = get_settings().training.device
+        device = get_settings().training.ensemble_device
         # buffer_size=50000 keeps memory under 500MB for 30-stock obs space
         self.model = DDPG("MlpPolicy", env, verbose=0, buffer_size=50000, batch_size=64, device=device)
         self.model.learn(total_timesteps=total_timesteps)

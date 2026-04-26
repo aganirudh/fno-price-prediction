@@ -204,7 +204,8 @@ training:
   lora_alpha: 16
   wandb_project: "pcp-arb-rl"
   checkpoint_interval: 100
-  device: "cuda"
+  ensemble_device: "cpu"
+  llm_device: "cuda"
 
 # ──────────────────────────────────────────────────────
 # Curriculum stages

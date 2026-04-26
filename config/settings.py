@@ -134,7 +134,8 @@ class TrainingConfig:
     lora_alpha: int
     wandb_project: str
     checkpoint_interval: int
-    device: str
+    ensemble_device: str
+    llm_device: str
 
 
 @dataclass
@@ -289,7 +290,8 @@ def load_settings(config_path: Optional[str] = None) -> Settings:
         lora_alpha=tc.get("lora_alpha", 16),
         wandb_project=tc.get("wandb_project", "pcp-arb-rl"),
         checkpoint_interval=tc.get("checkpoint_interval", 100),
-        device=tc.get("device", "cuda"),
+        ensemble_device=tc.get("ensemble_device", "cpu"),
+        llm_device=tc.get("llm_device", "cuda"),
     )
 
     # Parse curriculum
